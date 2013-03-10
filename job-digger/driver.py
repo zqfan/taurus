@@ -27,15 +27,16 @@ class TencentDriver(object):
         """Currently just find tech jobs in all cities."""
         last_update = kwargs.get("last_update")
         job_info = []
-        base_url = self.root_url + "position.php?keywords=&tid=87&start=0#a"
+        base_url = self.root_url + "position.php?keywords=&tid=87"
         # TODO(aji): loop to dig all pages, currently just first page
         start = 0
-        while start < 100:
+        while True:
             url = base_url + "&start=" + str(start) + "#a"
+            print "dig from page %d" % (start/10)
             info = self._get_job_links(url, last_update)
-            if len(info) == 0:
-                break
             job_info.extend(info)
+            if len(info) < 10:
+                break
             start += 10      
         return job_info
 
