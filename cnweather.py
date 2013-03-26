@@ -38,8 +38,11 @@ def print_weather_data(city_code):
     content = content.replace('~',' / ')
     data = json.loads(content)['weatherinfo']
     print data["city"]
-    print data['temp1'], data['weather1'], data['wind1']
-    print data['temp2'], data['weather2'], data['wind2']
+    for i in range (1,7):
+        temp = "temp%d" % i
+        weather = "weather%d" % i
+        wind = "wind%d" % i
+        print data[temp], data[weather], data[wind]
     
 
 def get_city_code(city_name):

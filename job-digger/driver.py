@@ -10,10 +10,12 @@ import time
 import requests
 from BeautifulSoup import BeautifulSoup
 
+import job
+
 
 class FakeDriver(object):
     """Fake driver return empty information."""
-    def get_job_info(self, *args, **kwargs):
+    def get_jobs(self, *args, **kwargs):
         return []
 
 
@@ -23,25 +25,25 @@ class TencentDriver(object):
         print "Init " + self.__class__.__name__
         self.root_url = "http://hr.tencent.com/"
 
-    def get_job_info(self, *args, **kwargs):
+    def get_jobs(self, *args, **kwargs):
         """Currently just find tech jobs in all cities."""
         last_update = kwargs.get("last_update")
-        job_info = []
+        jobs = []
         base_url = self.root_url + "position.php?keywords=&tid=87"
-        # TODO(aji): loop to dig all pages, currently just first page
+        # TODO(aji): loop to dig all pages
         start = 0
         while True:
             url = base_url + "&start=" + str(start) + "#a"
             print "dig from page %d" % (start/10)
-            info = self._get_job_links(url, last_update)
-            job_info.extend(info)
-            if len(info) < 10:
+            page_jobs = self._get_page_jobs(url, last_update)
+            jobs.extend(page_jobs)
+            if len(page_jobs) < 10: # 10 entry per page
                 break
-            start += 10      
-        return job_info
+            start += 10
+        return jobs
 
-    def _get_job_links(self, url, last_update):
-        job_info = []
+    def _get_page_jobs(self, url, last_update):
+        jobs = []
         res = requests.get(url)
         bs = BeautifulSoup(res.content)
         table = bs.findAll("table", attrs = {"class":"tablelist"})[0]
@@ -58,13 +60,20 @@ class TencentDriver(object):
                 if "href" in attr:
                     link = attr[1]
             single_job_url = self.root_url+link
-            content = self._get_single_job(single_job_url)
-            job_info.append({"link":single_job_url,"content":content})
+            detail = self._get_single_job(single_job_url)
+            d = job.Job()
+            d.link = single_job_url
+            d.pub_time = tds[-1].text
+            d.location = tds[-2].text
+            d.number = tds[-3].text
+            d.title= tds[0].text.replace("&nbsp;","")
+            d.detail = detail
+            jobs.append(d)
             print "%s%s%s" % (self.__class__.__name__,
                     ": get job info from ",
                     single_job_url)
-        return job_info
-                        
+        return jobs
+
     def _get_single_job(self, url):
         content = ""
         res = requests.get(url)
