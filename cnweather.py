@@ -19,7 +19,6 @@ def get_argparse():
         dest='city_code',
         help='citycode of your city')
     args.add_argument("-n","--city-name",
-        default="beijing",
         dest="city_name",
         help="city name of your city")
     return args
