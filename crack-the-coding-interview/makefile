@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-c -Wall
-SOURCE=5.7.c
+SOURCE=cha.9/9.1.c
 
 test: link.o test.o
 	$(CC) link.o test.o -o test
