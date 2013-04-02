@@ -1,0 +1,19 @@
+1. What role does the iostream file play in C++ I/O?
+A: standard IO
+
+2. Why does typing a number such as 121 as input require a program to make a coversion?
+A: because the variable accept the input should be a same type, or it will cause an error
+
+3. What’s the difference between the standard output and the standard error?
+A: standard error will not stored in buffer, it will flush immediately
+
+4. Why is cout able to display various C++ types without being provided explicit instructions for each type?
+A: The operator << is overloaded by all primitive type and even you can overload it in your composite type.
+
+5. What feature of the output method definitions allows you to concatenate output?
+A: If success, it returns the reference of the output object.
+
+6. Write a program that requests an integer and then displays it in decimal, octal, and hexadecimal forms. Display each form on the same line, in fields that are 15 characters wide, and use the C++ number base prefixes.
+A:
+
+
