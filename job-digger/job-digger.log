@@ -249,3 +249,17 @@
 2013-03-28 13:22:34,131 - JobDigger - INFO - env has been updated.
 2013-03-28 13:22:34,150 - JobDigger - INFO - env has been dumped.
 2013-03-28 13:22:34,150 - JobDigger - INFO - dump jobs finished. total 491.
+2013-04-03 14:38:49,104 - JobDigger - INFO - initialization finished
+2013-04-03 14:38:49,223 - JobDigger - INFO - load jobs from local file finished.
+2013-04-03 14:42:14,378 - JobDigger - INFO - get jobs finished.
+2013-04-03 14:42:14,420 - JobDigger - INFO - env has been updated.
+2013-04-03 14:42:14,421 - JobDigger - INFO - env has been dumped.
+2013-04-03 14:42:14,421 - JobDigger - INFO - dump jobs finished. total 508.
+2013-04-03 15:47:14,072 - JobDigger - INFO - initialization finished
+2013-04-03 15:47:14,139 - JobDigger - INFO - load jobs from local file finished.
+2013-04-03 15:48:21,068 - JobDigger - INFO - initialization finished
+2013-04-03 15:48:21,099 - JobDigger - INFO - load jobs from local file finished.
+2013-04-03 15:50:41,416 - JobDigger - INFO - get jobs finished.
+2013-04-03 15:50:41,456 - JobDigger - INFO - env has been updated.
+2013-04-03 15:50:41,457 - JobDigger - INFO - env has been dumped.
+2013-04-03 15:50:41,457 - JobDigger - INFO - dump jobs finished. total 508.

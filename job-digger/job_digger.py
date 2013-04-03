@@ -42,7 +42,7 @@ class JobDigger(object):
 
     def _init_log(self):
         format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        logging.basicConfig(filename="log",format=format)
+        logging.basicConfig(filename="job-digger.log",format=format)
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)
         self._logger.info("initialization finished")
@@ -100,7 +100,7 @@ class JobDigger(object):
 
         Currently, only 'last_update' opt is used.
         """
-        fp = open("env", "r")
+        fp = open("local.conf", "r")
         self.env = json.load(fp)
         fp.close()
 
@@ -112,7 +112,7 @@ class JobDigger(object):
 
     def dump_env(self):
         """Dumpp environment to a local file in json format."""
-        fp = open("env", "w")
+        fp = open("local.conf", "w")
         json.dump(self.env, fp, indent=2)
         fp.close()
         self._logger.info("env has been dumped.")
