@@ -12,14 +12,14 @@ class explog:
     def __init__(self,conf_file=""):
         print 'elog version 0.1, copyright (c) ZhiQiang Fan, all rights reserved.'
         if conf_file.strip()=="":
-            self.conf = os.path.expanduser('~')+"/code/python/explog.conf"
+            self.conf = os.getcwd()+os.path.sep+"explog.conf"
         else:
             self.conf = conf_file
         self.date = time.strftime("%Y-%m-%d")
 
-    def load_conf(self):        
+    def load_conf(self):
         if os.path.isfile(self.conf):
-            self._load_conf()             
+            self._load_conf()
         else:
             print 'configure file does not exist, program exit'
             exit(1)
@@ -67,7 +67,7 @@ class explog:
         self._list_day(file_name)
         self._summary_cat()
         self._print_list()
-        
+
     def sum(self,month=None,year=None):
         if year and not month:
             year_dir = self.data_dir+os.path.sep+year+os.path.sep
@@ -90,7 +90,7 @@ class explog:
         self._summary_cat()
         self._print_list()
         self._print_cat()
-    
+
     def update(self,item_id,item=None,price=None,category=None,date=None):
         i = 1
         length = len(self._elist)
