@@ -3,6 +3,7 @@
 import os
 import time
 import cmdpar
+import sys
 
 class explog:
     _elist = []
@@ -12,7 +13,13 @@ class explog:
     def __init__(self,conf_file=""):
         print 'elog version 0.1, copyright (c) ZhiQiang Fan, all rights reserved.'
         if conf_file.strip()=="":
-            self.conf = os.getcwd()+os.path.sep+"explog.conf"
+            path = os.path.realpath(sys.path[0])
+            if os.path.isfile(path):
+                path = os.path.dirname(path)
+                path = os.path.abspath(path)
+            self.conf = path+os.path.sep+"explog.conf"
+            if not os.path.isfile(self.conf):
+                raise Exception
         else:
             self.conf = conf_file
         self.date = time.strftime("%Y-%m-%d")
