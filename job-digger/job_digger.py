@@ -14,6 +14,11 @@ import pynotify
 import driver
 import job
 
+
+LOG_FILE = "/tmp/job_digger.log"
+CONF_FILE = "/home/zqfan/appdata/job_digger/job_digger.conf"
+
+
 class JobDigger(object):
     """Class comminutes with end user.
 
@@ -36,13 +41,13 @@ class JobDigger(object):
         self.load_env()
         self.load_jobs()
         pynotify.init("job_digger")
-        allow_location = [u"深圳",u"广州",u"苏州"]
+        allow_location = [u"深圳",u"广州"]
         self.job_filter = job.JobFilter(
             allow={"location":allow_location})
 
     def _init_log(self):
         format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        logging.basicConfig(filename="job-digger.log",format=format)
+        logging.basicConfig(filename=LOG_FILE,format=format)
         self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.setLevel(logging.DEBUG)
         self._logger.info("initialization finished")
@@ -100,7 +105,7 @@ class JobDigger(object):
 
         Currently, only 'last_update' opt is used.
         """
-        fp = open("local.conf", "r")
+        fp = open(CONF_FILE, "r")
         self.env = json.load(fp)
         fp.close()
 
@@ -112,7 +117,7 @@ class JobDigger(object):
 
     def dump_env(self):
         """Dumpp environment to a local file in json format."""
-        fp = open("local.conf", "w")
+        fp = open(CONF_FILE, "w")
         json.dump(self.env, fp, indent=2)
         fp.close()
         self._logger.info("env has been dumped.")
