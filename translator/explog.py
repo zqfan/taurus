@@ -1,291 +1,311 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os
 import time
-import cmdpar
 import sys
+import json
+import readline
 
-class explog:
+import argparse
+
+
+class FileNotFound(Exception): pass
+class DirNotFound(Exception):
+    def __str__(self):
+        return "".join(("Error: directory is not found. ",
+                super(Exception, self).__str__()))
+
+
+class explog(object):
+    """A expense recorder."""
     _elist = []
     _ecat = {}
     conf = ""
 
-    def __init__(self,conf_file=""):
-        print 'elog version 0.1, copyright (c) ZhiQiang Fan, all rights reserved.'
-        if conf_file.strip()=="":
+    def __init__(self, conf_file=""):
+        if conf_file.strip() == "":
             path = os.path.realpath(sys.path[0])
             if os.path.isfile(path):
                 path = os.path.dirname(path)
                 path = os.path.abspath(path)
             self.conf = path+os.path.sep+"explog.conf"
-            if not os.path.isfile(self.conf):
-                raise Exception
         else:
             self.conf = conf_file
+        if not os.path.isfile(self.conf):
+            raise FileNotFound(self.conf)
         self.date = time.strftime("%Y-%m-%d")
 
-    def load_conf(self):
-        if os.path.isfile(self.conf):
-            self._load_conf()
-        else:
-            print 'configure file does not exist, program exit'
-            exit(1)
-
-    def add(self,item,price,category='other',date=''):
-	if category.strip()=='':
-	    category = 'other'
-        if date.strip()=='':
-            date = self.date
+    def _get_file_by_date(self, date, auto_create=True):
+        date = date or self.date
         time_t = time.strptime(date,'%Y-%m-%d')
-        year_dir = str(time_t.tm_year)
-        mon_dir = str(time_t.tm_mon)
-        if len(mon_dir) == 1:
-            mon_dir = '0'+mon_dir
-        if not os.path.isdir(self.data_dir+os.path.sep+year_dir):
-            os.mkdir(self.data_dir+os.path.sep+year_dir)
-        if not os.path.isdir(self.data_dir+os.path.sep+year_dir+os.path.sep+mon_dir):
-            os.mkdir(self.data_dir+os.path.sep+year_dir+os.path.sep+mon_dir)
-        file_name = self.data_dir+os.path.sep+year_dir+os.path.sep+mon_dir+os.path.sep+date+".txt"
-        fp = open(file_name,'a')
-        fp.write("category = "+category+"\nitem = "+item+"\nprice = "+price+"\n")
-        fp.close()
-        self._elist = [date,]
-        self._list_day(file_name)
+        year = str(time_t.tm_year)
+        mon = '%02d' % time_t.tm_mon
+        year_dir = self._concate_dir(self.data_dir, year, auto_create)
+        mon_dir = self._concate_dir(year_dir, mon, auto_create)
+        return os.path.join(mon_dir,date+".txt")
 
-    def list(self,date=''):
-        if date.strip()=='':
-            date = self.date
-        time_t = time.strptime(date,'%Y-%m-%d')
-        year_dir = str(time_t.tm_year)
-        mon_dir = str(time_t.tm_mon)
-        if len(mon_dir) == 1:
-            mon_dir = '0'+mon_dir
-        if not os.path.isdir(self.data_dir+os.path.sep+year_dir):
-            print year_dir+' has no data'
+    def add(self, item, price, category='other', date=''):
+        category = category or 'other'
+        new_data = {'item': item,
+                    'price' : price,
+                    'category': category,
+                    'date': date}
+        file_name = self._get_file_by_date(date)
+        with open(file_name) as f:
+            try:
+                data = json.load(f)
+            except ValueError, e:
+                data = self._read_old_format_data(file_name)
+            data.append(new_data)
+        with open(file_name, 'w') as f:
+            json.dump(data, f, indent=2)
+        self.list(date)
+
+    def _concate_dir(self, path, sub='', auto_create=False):
+        new_dir = os.path.join(path,sub)
+        if not os.path.isdir(new_dir):
+            if auto_create:
+                os.mkdir(new_dir)
+            else:
+                raise DirNotFound(new_dir)
+        return new_dir
+
+    def list(self, date):
+        try:
+            file_name = self._get_file_by_date(date, False)
+        except DirNotFound, e:
+            print "Error: no such record: " + date
             return
-        if not os.path.isdir(self.data_dir+os.path.sep+year_dir+os.path.sep+mon_dir):
-            print year_dir+'-'+mon_dir+' has no data'
-            return
-        file_name = self.data_dir+os.path.sep+year_dir+os.path.sep+mon_dir+os.path.sep+date+".txt"
-        if os.path.isfile(file_name)==False:
+        if not os.path.isfile(file_name):
             print date+' has no data'
             return
-        self._elist = [date,]
-        self._list_day(file_name)
-        self._summary_cat()
+        self._elist = self._list_day(file_name)
         self._print_list()
 
-    def sum(self,month=None,year=None):
+    def sum(self, month=None, year=None):
+        self._elist = []
         if year and not month:
-            year_dir = self.data_dir+os.path.sep+year+os.path.sep
-            if not os.path.exists(year_dir):
-                print 'directory '+year_dir+' does not exist.'
+            try:
+                year_dir = self._concate_dir(self.data_dir, year)
+            except DirNotFound, e:
+                print e
                 return
-            self._elist = [year,]
             self._list_year(year_dir)
         else:
-            m = month or str(time.localtime().tm_mon)
-            y = year or str(time.localtime().tm_year)
-            if len(m)==1:
-                m = '0'+m
-            month_dir = self.data_dir+os.path.sep+y+os.path.sep+m+os.path.sep
-            if not os.path.exists(month_dir):
-                print 'directory '+month_dir+' does not exist.'
+            month = month or ("%02d" % time.localtime().tm_mon)
+            year = year or str(time.localtime().tm_year)
+            try:
+                year_dir = self._concate_dir(self.data_dir, year)
+                month_dir = self._concate_dir(year_dir, month)
+            except DirNotFound, e:
+                print e
                 return
-            self._elist = [y+'-'+m,]
-            self._list_month(month_dir)
-        self._summary_cat()
+            for root, dirs, files in os.walk(month_dir):
+                for name in files:
+                    data = self._list_day(os.path.join(root, name))
+                    self._elist.extend(data)
         self._print_list()
-        self._print_cat()
+        self._print_summary(summary=self._get_summary())
 
-    def update(self,item_id,item=None,price=None,category=None,date=None):
-        i = 1
-        length = len(self._elist)
-        while i < length:
-            if self._elist[i][0]==int(item_id):
-                if len(self._elist[0]) != 10:
-                    return
-                if date:
-                    item = item or self._elist[i][2]
-                    p = price or self._elist[i][3]
-                    c = category or self._elist[i][1]
-                    d = self._elist[0]
-                    self.add(item,p,c,date)
-                    # add will list by default, which will change _elist entirely
-                    # del self._elist[i]
-                    self.list(d)
-                    del self._elist[i]
-                    self._flush_list()
-                    return
-                if category:
-                    self._elist[i][1] = category
-                if item:
-                    self._elist[i][2] = item
-                if price:
-                    self._elist[i][3] = price
-                self._flush_list()
-                return
-            i += 1
-
-    def find(self,item=None,category=None,date=None):
-        year_dir_list = os.listdir(self.data_dir)
-        year_dir_list.sort()
-        self._elist = ["find"]
-        for year in year_dir_list:
-            self._list_year(self.data_dir+os.path.sep+year+os.path.sep)
-        i = 1
-        length = len(self._elist)
-        while i < length:
-            if item:
-                if self._elist[i][2] != item:
-                    del self._elist[i]
-                    length -= 1
-                    continue
-            if category:
-                if self._elist[i][1] != category:
-                    del self._elist[i]
-                    length -= 1
-                    continue
-            if date:
-                if self._elist[i][4] != date:
-                    del self._elist[i]
-                    length -= 1
-                    continue
-            i += 1
-        self._summary_cat()
-        self._print_list()
-        self._print_cat()
-
-    def delete(self,item_id):
-        i = 1
-        length = len(self._elist)
-        while i < length:
-            if self._elist[i][0]==int(item_id):
-                if self._elist[i][4] != self._elist[0]:
-                    return
-                del self._elist[i]
-                self._flush_list()
-                break
-            i += 1
-
-    def help(self):
-        print "sum [-m month][-y year]"
-        print "find [-c category][-i item][-d date]"
-
-    def _flush_list(self):
-        file_name = self.data_dir+os.path.sep+self._elist[0][:4]+os.path.sep+self._elist[0][5:7]+os.path.sep+self._elist[0]+'.txt'
-        if not os.path.isfile(file_name):
-            print 'file not exist: '+file_name
+    def update(self, id, item=None, price=None, category=None):
+        if len(self._elist) <= id or id < 0:
+            print "Error: Index error."
             return
-        length = len(self._elist)
-        i = 1
-        fp = open(file_name,'w')
-        while i < length:
-            fp.write('category = '+self._elist[i][1]+'\nitem = '+self._elist[i][2]+'\nprice = '+self._elist[i][3]+'\n')
-            i += 1
-        fp.close()
+        entry = self._elist[item_id]
+        entry['item'] = item or entry['item']
+        entry['price'] = price or entry['price']
+        entry['category'] = category or entry['category']
+        self._dump_by_date(date)
 
-    def _list_year(self,year_dir):
-        month_list = os.listdir(year_dir)
-        for month_dir in month_list:
-            if os.path.isdir(year_dir+month_dir):
-                self._list_month(year_dir+month_dir+os.path.sep)
+    def find(self, item=None, category=None):
+        self._elist = []
+        for root, year_dirs, files in os.walk(self.data_dir):
+            for file_name in files:
+                data = self._list_day(os.path.join(root, file_name))
+                self._elist.extend(data)
+        filtered_list = []
+        for entry in self._elist:
+            if (entry['item'] == item or
+                entry['category'] == category):
+                filtered_list.append(entry)
+        self._elist = filtered_list
+        self._print_list()
+        self._print_summary(summary=self._get_summary())
 
-    def _list_month(self,month_dir):
-        dir_list = os.listdir(month_dir)
-        dir_list.sort()
-        length = len(dir_list)
-        i = 0
-        while i < length:
-            if os.path.isfile(month_dir+dir_list[i]):
-                self._list_day(month_dir+dir_list[i])
-                i += 1
+    def delete(self, id):
+        id = int(id)
+        if len <= id or id < 0:
+            print u"Error: Index error."
+            return
+        date = self._elist[id]['date']
+        del self._elist[id]
+        self._dump_by_date(date)
+        self._print_list()
 
-    def _load_conf(self):
-        fp = open(self.conf)
-        lines = fp.readlines()
-        for line in lines:
-            if line.startswith('data_dir = '):
-                self.data_dir = line[11:]
-        self.data_dir = self.data_dir.strip()
-        fp.close()
-        if self.data_dir.strip()=='':
-            self.data_dir = os.path.expanduser('~')+"/appdata/explog"
-        if os.path.isdir(self.data_dir)==False:
+    def _dump_by_date(self, date):
+        new_data = []
+        for (i, v) in enumerate(self._elist):
+            if self._elist[i]['date'] == date:
+                new_data.append(self._elist[i])
+        file_name = self._get_file_by_date(date)
+        with open(file_name, 'w') as f:
+            json.dump(new_data, f)
+
+    def load_conf(self):
+        with open(self.conf) as fp:
+            for line in fp:
+                if line.startswith('data_dir = '):
+                    self.data_dir = line[11:].strip()
+        if self.data_dir == '':
+            self.data_dir = os.path.expanduser('~')+'/appdata/explog'
+        if not os.path.isdir(self.data_dir):
             # make directory
             os.mkdir(self.data_dir)
 
-    def _list_day(self,file_name,option=None):
-        fp = open(file_name)
-        lines = fp.readlines()
-        fp.close()
-        count = 0
-        index = len(self._elist)
-        for line in lines:
-            if line.startswith('category = '):
-                count += 1
-		cat = line[len('category = '):-1]
-            elif line.startswith('item = '):
-                count += 1
-                item = line[len('item = '):-1]
-            elif line.startswith('price = '):
-                count += 1
-                price = line[len('price = '):-1]
-            if count == 3:
-                self._elist.append([index,cat,item,price,os.path.split(file_name)[1].split('.')[0]])
-                index += 1
-                count = 0
+    def _read_old_format_data(self, file_name):
+        data = []
+        basename = os.path.basename(file_name)
+        date = os.path.splitext(basename)[0]
+        with open(file_name) as f:
+            count = 0
+            index = len(self._elist)
+            for line in f:
+                if line.startswith('category = '):
+                    count += 1
+                    cat = line[len('category = '):-1]
+                elif line.startswith('item = '):
+                    count += 1
+                    item = line[len('item = '):-1]
+                elif line.startswith('price = '):
+                    count += 1
+                    price = line[len('price = '):-1]
+                if count == 3:
+                    data.append({'category': cat,
+                                 'item': item,
+                                 'price': price,
+                                 'date': date})
+                    index += 1
+                    count = 0
+        return data
 
-    def _summary_cat(self):
-        self._ecat = {}
-        elist = self._elist[1:]
-        for l in elist:
-            if not self._ecat.has_key(l[1]):
-                self._ecat[l[1]] = [1,float(l[3])]
+    def _list_day(self,file_name,option=None):
+        with open(file_name) as f:
+            try:
+                data = json.load(f)
+                basename = os.path.basename(file_name)
+                date = os.path.splitext(basename)[0]
+                for entry in data:
+                    entry['date'] = entry.get('date') or date
+            except ValueError, e:
+                f.close()
+                return self._read_old_format_data(file_name)
+            return data
+
+    def _get_summary(self):
+        summary = {}
+        for l in self._elist:
+            if not summary.has_key(l['category']):
+                summary[l['category']] = [1,float(l['price'])]
             else:
-                self._ecat.get(l[1])[0] += 1
-                self._ecat.get(l[1])[1] += float(l[3])
+                summary[l['category']][0] += 1
+                summary[l['category']][1] += float(l['price'])
+        return summary
 
     def _print_list(self):
-        print 'log for '+self._elist[0]
        	print '+------+-----------------+-----------------+------------+------------+'
-        print '| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |'%('id','category','item','price','date')
+        print ('| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |' %
+               ('id','category','item','price','date'))
 	print '+------+-----------------+-----------------+------------+------------+'
         length = len(self._elist)
-        i = 1
-        while i < length:
-            print u'| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |'%(self._elist[i][0],self._elist[i][1],self._elist[i][2].decode('utf8'),self._elist[i][3],self._elist[i][4])
-            i += 1
+        for (i, v) in enumerate(self._elist):
+            print (u'| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |' %
+                   (i, self._elist[i]['category'],
+                    self._elist[i]['item'].decode('utf8'),
+                    self._elist[i]['price'],
+                    self._elist[i]['date']))
 	print '+------+-----------------+-----------------+------------+------------+'
 
-    def _print_cat(self,prompt=None):
+    def _print_summary(self, prompt=None, summary={}):
         total = cost = income = 0
         print prompt or 'category summary'
         print '+------------+--------+------------+'
-        print '| %-10.10s | %-6.6s | %-10.10s |'%('category','count','total')
+        print ('| %-10.10s | %-6.6s | %-10.10s |' %
+               ('category','count','total'))
         print '+------------+--------+------------+'
-        for k in self._ecat:
-            print '| %-10.10s | %-6d | %-10.1f |'%(k,self._ecat[k][0],self._ecat[k][1])
+        for k in summary:
+            print ('| %-10.10s | %-6d | %-10.1f |' %
+                   (k,summary[k][0],summary[k][1]))
             if k=='bank':
                 continue
-            if self._ecat[k][1] > 0 :
-                income += self._ecat[k][1]
+            if summary[k][1] > 0 :
+                income += summary[k][1]
             else:
-                cost += self._ecat[k][1]
-            total += self._ecat[k][1]
+                cost += summary[k][1]
+            total += summary[k][1]
         print '+------------+--------+------------+'
-        print 'cost = '+str(cost)+', income = '+str(income)+', total = '+str(total)
+        print ('cost = ' + str(cost) +
+               ', income = '+str(income) +
+               ', total = '+str(total))
 
-elog = explog()
-elog.load_conf()
-cp = cmdpar.cmd_parser(['add',elog.add,'ls',elog.list,'sum',elog.sum,'update',elog.update,'delete',elog.delete,'find',elog.find,'help',elog.help],
-                [['-i',"",'-p',"",'-c',"other",'-d',time.strftime('%Y-%m-%d')],
-                 ['-d',''],
-                 ['-m','','-y',''],
-                 ['-id','','-i','','-p','','-c','','-d',''],
-                 ['-id',''],
-                 ['-i','','-c','','-d',''],
-                 [],
-                ],
-                'explog # ')
-cp.run()
+    def exit(self):
+        print u'Bye!'
+        exit(0)
+
+    def run(self):
+        while True:
+            try:
+                command = raw_input(u'> ')
+            except EOFError, e:
+                self.exit()
+            args = self.argument_parse(command.split())
+            args_dict = vars(args)
+            func = args_dict.pop('func')
+            func(**args_dict)
+
+    def argument_parse(self, args):
+        parser = argparse.ArgumentParser()
+        sub_parser = parser.add_subparsers()
+
+        parser_add = sub_parser.add_parser('add')
+        parser_add.set_defaults(func=self.add)
+        parser_add.add_argument('-i', '--item')
+        parser_add.add_argument('-p', '--price')
+        parser_add.add_argument('-c', '--category', default='other')
+        parser_add.add_argument('-d', '--date', default='')
+
+        parser_delete = sub_parser.add_parser('delete')
+        parser_delete.set_defaults(func=self.delete)
+        parser_delete.add_argument('id')
+
+        parser_list = sub_parser.add_parser('ls')
+        parser_list.set_defaults(func=self.list)
+        parser_list.add_argument('-d', '--date', default='')
+
+        parser_update = sub_parser.add_parser('update')
+        parser_update.set_defaults(func=self.update)
+        parser_update.add_argument('-id')
+        parser_update.add_argument('-i', '--item', default='')
+        parser_update.add_argument('-p', '--price', default='')
+        parser_update.add_argument('-c', '--category', default='')
+
+        parser_find = sub_parser.add_parser('find')
+        parser_find.set_defaults(func=self.find)
+        parser_find.add_argument('-i', '--item', default='')
+        parser_find.add_argument('-c', '--category', default='')
+
+        parser_sum = sub_parser.add_parser('sum')
+        parser_sum.set_defaults(func=self.sum)
+        parser_sum.add_argument('-m', '--month', default='')
+        parser_sum.add_argument('-y', '--year', default='')
+
+        parser_exit = sub_parser.add_parser('exit')
+        parser_exit.set_defaults(func=self.exit)
+
+        return parser.parse_args(args)
+
+
+if __name__ == "__main__":
+    elog = explog()
+    elog.load_conf()
+    elog.run()
