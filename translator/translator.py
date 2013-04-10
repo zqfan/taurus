@@ -111,7 +111,7 @@ class Translator():
             self.interprets = fp.readlines()
             fp.close()
         except Exception as e:
-            print "ERROR: file not exists: %s" % word
+            print "ERROR: read file error: %s" % word
             self.interprets = []
 
     def find(self,word='empty',net='False'):
