@@ -52,7 +52,7 @@ class explog(object):
                     'category': category,
                     'date': date}
         file_name = self._get_file_by_date(date)
-        with open(file_name) as f:
+        with open(file_name, 'a+') as f:
             try:
                 data = json.load(f)
             except ValueError, e:
