@@ -193,14 +193,15 @@ class explog(object):
         with open(file_name) as f:
             try:
                 data = json.load(f)
+            except ValueError, e:
+                f.close()
+                data = self._read_old_format_data(file_name)
+            finally:
                 basename = os.path.basename(file_name)
                 date = os.path.splitext(basename)[0]
                 for entry in data:
                     entry['date'] = entry.get('date') or date
-            except ValueError, e:
-                f.close()
-                return self._read_old_format_data(file_name)
-            return data
+                return data
 
     def _get_summary(self):
         summary = {}
@@ -213,15 +214,15 @@ class explog(object):
         return summary
 
     def _print_list(self):
+        self._elist.sort(key=lambda x: x['date'])
        	print '+------+-----------------+-----------------+------------+------------+'
         print ('| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |' %
                ('id','category','item','price','date'))
 	print '+------+-----------------+-----------------+------------+------------+'
-        length = len(self._elist)
         for (i, v) in enumerate(self._elist):
-            print (u'| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |' %
+            print ('| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |' %
                    (i, self._elist[i]['category'],
-                    self._elist[i]['item'].decode('utf8'),
+                    self._elist[i]['item'],
                     self._elist[i]['price'],
                     self._elist[i]['date']))
 	print '+------+-----------------+-----------------+------------+------------+'
