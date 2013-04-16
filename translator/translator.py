@@ -244,9 +244,14 @@ def main():
     dic.find(args.word,args.net)
     dic.print_interprets()
     if not dic.interprets_from_file:
-        save_opt = raw_input("save this word? yes/no: ")
-        if save_opt == "yes" or save_opt == 'y':
-            dic.dump()
+        try:
+            save_opt = raw_input("save this word? yes/no: ")
+            if save_opt == "yes" or save_opt == 'y':
+                dic.dump()
+        except EOFError:
+            print "Bye!"
+        except KeyboardInterrupt:
+            print "Bye!"
     else:
         dic.save_word_list()
     
