@@ -24,6 +24,15 @@ void _get_next(int width, int height, int * i, int * j, int degree)
     *i = *j;
     *j = width - tmp - 1;
     break;
+  case 180:
+    *i = width - *i - 1;
+    *j = height - *j - 1;
+    break;
+  case 270:
+    tmp = *i;
+    *i = height - *j - 1;
+    *j = tmp;
+    break;
   default:return;
   }
 }
