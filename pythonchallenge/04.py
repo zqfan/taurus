@@ -6,37 +6,16 @@ import requests
 
 
 def answer():
-    r = requests.get("http://www.pythonchallenge.com/pc/def/equality.html")
-    mess = r.content.split("-->")[-2]
-    url = ""
-
-    def _check(mess, index, x):
-        r = True
-        for i in range(0,3):
-            index += x
-            if 0 <= i and i < len(mess):
-                r = r and mess[index].isupper()
-            else:
-                r = False
-        index += x
-        # if it out of bounds, it will be true
-        if 0 <= i and i < len(mess):
-            r = r and mess[index].islower()
-        return r
-        
-    index = 0
-    leng = len(mess)-2
-    while index < leng:
-        index += 1
-        if not mess[index].islower():
-            continue
-        # check left and right side
-        r = _check(mess, index, -1)
-        r = r and _check(mess, index, 1)
-        if r:
-            url += mess[index]
-    print url
-
+    url_base = "http://www.pythonchallenge.com/pc/def/linkedlist.php?nothing="
+    url = url_base + "12345"
+    for i in range(0,1000):
+        r = requests.get(url)
+        print r.content
+        next_id = r.content.split()[-1]
+        url = url_base + next_id
+        if not next_id.isdigit() and next_id.endswith(".html"):
+            url = "http://www.pythonchallenge.com/pc/def/"+next_id
+            return url
 
 if __name__ == '__main__':
     answer()

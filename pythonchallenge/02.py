@@ -2,19 +2,17 @@
 # -*- coding: utf-8 -*-
 # vim: tabstop=4 shitwidth=4 softtabstop=4
 
-import string
+import requests
 
 
 def answer():
-    table = string.maketrans("abcdefghijklmnopqrstuvwxyz",
-                             "cdefghijklmnopqrstuvwxyzab")
-    source = "".join(["g fmnc wms bgblr rpylqjyrc gr zw fylb. ",
-                      "rfyrq ufyr amknsrcpq ypc dmp. bmgle gr gl zw ",
-                      "fylb gq glcddgagclr ylb rfyr'q ufw rfgq rcvr ",
-                      "gq qm jmle. sqgle qrpgle.kyicrpylq() gq ",
-                      "pcamkkclbcb. lmu ynnjw ml rfc spj.",])
-    target = string.translate(source,table)
-    print target
+    r = requests.get("http://www.pythonchallenge.com/pc/def/ocr.html")
+    mess = r.content.split("-->")[-2]
+    url = []
+    for c in mess:
+        if "a" <= c <= "z":
+            url.append(c)
+    print ''.join(url)
 
 
 if __name__ == '__main__':

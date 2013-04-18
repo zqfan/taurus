@@ -6,13 +6,36 @@ import requests
 
 
 def answer():
-    r = requests.get("http://www.pythonchallenge.com/pc/def/ocr.html")
+    r = requests.get("http://www.pythonchallenge.com/pc/def/equality.html")
     mess = r.content.split("-->")[-2]
-    url = []
-    for c in mess:
-        if "a" <= c <= "z":
-            url.append(c)
-    print ''.join(url)
+    url = ""
+
+    def _check(mess, index, x):
+        r = True
+        for i in range(0,3):
+            index += x
+            if 0 <= i and i < len(mess):
+                r = r and mess[index].isupper()
+            else:
+                r = False
+        index += x
+        # if it out of bounds, it will be true
+        if 0 <= i and i < len(mess):
+            r = r and mess[index].islower()
+        return r
+        
+    index = 0
+    leng = len(mess)-2
+    while index < leng:
+        index += 1
+        if not mess[index].islower():
+            continue
+        # check left and right side
+        r = _check(mess, index, -1)
+        r = r and _check(mess, index, 1)
+        if r:
+            url += mess[index]
+    print url
 
 
 if __name__ == '__main__':
