@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-c -Wall
-SOURCE=cha.13/13.3.cpp
+SOURCE=cha.03/3.2.cpp
 
 test: test.o
 	$(CC) test.o -o test
