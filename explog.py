@@ -257,7 +257,7 @@ class explog(object):
         while True:
             try:
                 command = raw_input(u'> ')
-            except EOFError, e:
+            except (EOFError, KeyboardInterrupt), e:
                 self.exit()
             args = self.argument_parse(command.split())
             args_dict = vars(args)
