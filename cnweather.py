@@ -38,7 +38,10 @@ def get_weather_data(city_code):
         return
     content = resp.content.replace("℃", "'C")
     content = content.replace('~', ' / ')
-    data = json.loads(content)['weatherinfo']
+    try:
+        data = json.loads(content)['weatherinfo']
+    except ValueError, e:
+        return
     return data
 
 
