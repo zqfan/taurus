@@ -21,7 +21,7 @@ border_outer_margin	1
 
 # — SIZE — #
 minimum_size		100
-maximum_width		180
+maximum_width		1200
 #default_bar_size	150 4
 
 # — ALIGNMENT — #
@@ -34,7 +34,7 @@ draw_shades		    no
 draw_outline		no
 draw_borders		no
 draw_graph_borders	no
-#default_shade_color 
+#default_shade_color
 #default_outline_color	909090
 #own_window_colour	808080
 
@@ -44,7 +44,7 @@ xftfont			    Dejavu Sans:size=7
 xftalpha		    1.0
 uppercase		    no
 override_utf8_locale yes
-default_color		666
+default_color		aaa
 
 # — LUA — #
 #lua_load		~/Conky/bgcolor/bg.lua
@@ -92,6 +92,7 @@ ${font WenQuanYi Micro Hei:size=8}农历${execi 3600 ~/software/conky-theme/get_
 天气 北京
 ${execi 300 weather -o /tmp/weather}${execi 300 sed -n "2p" /tmp/weather}
 ${execi 300 sed -n "3p" /tmp/weather}
+${execi 300 sed -n "4p" /tmp/weather}
 天气 株洲
 ${execi 300 weather -c 101250301 -o /tmp/weather.zhuzhou}${execi 300 sed -n "2p" /tmp/weather.zhuzhou}
 ${execi 300 sed -n "3p" /tmp/weather.zhuzhou}
@@ -105,3 +106,5 @@ ${execi 300 sed -n "3p" /tmp/weather.zhuzhou}
 以多态应用为荣，以分支判断为耻
 以Pythonic为荣，以冗余拖沓为耻
 以总结分享为荣，以跪求其解为耻
+
+${font Impact:size=64}What do you really want to do?
