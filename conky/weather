@@ -27,7 +27,7 @@ maximum_width		1200
 # — ALIGNMENT — #
 alignment		    top_left
 gap_x			    210
-gap_y			    20
+gap_y			    24
 
 # — GRAPHIC — #
 draw_shades		    no
@@ -50,21 +50,10 @@ default_color		aaa
 #lua_load		~/Conky/bgcolor/bg.lua
 #lua_draw_hook_pre	conky_draw_bg
 
-# — Colors — #
-color1			C18C24
-color2          FF0000
-
-
 TEXT
 
 # lunar
 ${font WenQuanYi Micro Hei:size=8}农历${execi 3600 ~/software/conky-theme/get_lunar.sh}
 # weather
-#${font Impact:size=32}W${goto 40}${voffset -26}${font}eather${color}
-天气 北京
-${execi 300 weather -o /tmp/weather}${execi 300 sed -n "2p" /tmp/weather}
-${execi 300 sed -n "3p" /tmp/weather}
-${execi 300 sed -n "4p" /tmp/weather}
-天气 株洲
-${execi 300 weather -c 101250301 -o /tmp/weather.zhuzhou}${execi 300 sed -n "2p" /tmp/weather.zhuzhou}
-${execi 300 sed -n "3p" /tmp/weather.zhuzhou}
+${execi 300 weather -o ~/.weather}${execi 60 head -5 ~/.weather}
+${execi 300 weather -c 101250301 -o ~/.weather.zhuzhou}${execi 300 head -2 ~/.weather.zhuzhou}

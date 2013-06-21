@@ -57,8 +57,7 @@ color2          FF0000
 
 TEXT
 
-${font Impact:size=12}To follow the path:
-look to the master,
+${font size=12}look to the master,
 follow the master,
 walk with the master,
 see through the master,
