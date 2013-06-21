@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+conky -d -c base
+sleep 1
+conky -d -c maxim
+sleep 1
+conky -d -c weather

@@ -52,6 +52,7 @@ default_color		aaa
 
 # — Colors — #
 color1			C18C24
+color2          FF0000
 
 
 TEXT
@@ -83,28 +84,3 @@ ${font Poky:size=20}P${voffset -3}${font Impact:size=16}$color1${goto 30}${cpu c
 ${goto 80}${top name 2}${goto 150}${top cpu 2}
 ${offset 5}${acpitemp} 'C${goto 80}${top name 3}${goto 150}${top cpu 3}
 ${voffset -10}$color1${cpugraph 15,75}$color${goto 80}${voffset 10}${top name 4}${goto 150}${top cpu 4}${voffset -15}
-# gmail
-#${font}${color}Gmail: ${execi 60 ~/software/conky-theme/check_gmail.sh}
-# lunar
-${font WenQuanYi Micro Hei:size=8}农历${execi 3600 ~/software/conky-theme/get_lunar.sh}
-# weather
-#${font Impact:size=32}W${goto 40}${voffset -26}${font}eather${color}
-天气 北京
-${execi 300 weather -o /tmp/weather}${execi 300 sed -n "2p" /tmp/weather}
-${execi 300 sed -n "3p" /tmp/weather}
-${execi 300 sed -n "4p" /tmp/weather}
-天气 株洲
-${execi 300 weather -c 101250301 -o /tmp/weather.zhuzhou}${execi 300 sed -n "2p" /tmp/weather.zhuzhou}
-${execi 300 sed -n "3p" /tmp/weather.zhuzhou}
-
-以动手实践为荣，以只看不练为耻
-以打印日志为荣，以单步跟踪为耻
-以空格缩进为荣，以制表缩进为耻
-以单元测试为荣，以人工测试为耻
-
-以模块复用为荣，以复制粘贴为耻
-以多态应用为荣，以分支判断为耻
-以Pythonic为荣，以冗余拖沓为耻
-以总结分享为荣，以跪求其解为耻
-
-${font Impact:size=64}What do you really want to do?
