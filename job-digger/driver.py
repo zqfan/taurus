@@ -8,18 +8,19 @@
 import time
 
 import requests
+import gevent
 from BeautifulSoup import BeautifulSoup
 
 import job
 
 
-class FakeDriver(object):
-    """Fake driver return empty information."""
+class BaseDriver(object):
+    """Base driver return empty information."""
     def get_jobs(self, *args, **kwargs):
         return []
 
 
-class TencentDriver(object):
+class TencentDriver(BaseDriver):
     """Job digger driver for tencent."""
     def __init__(self):
         print "Init " + self.__class__.__name__
@@ -30,7 +31,6 @@ class TencentDriver(object):
         last_update = kwargs.get("last_update")
         jobs = []
         base_url = self.root_url + "position.php?keywords=&tid=87"
-        # TODO(aji): loop to dig all pages
         start = 0
         while True:
             url = base_url + "&start=" + str(start) + "#a"
@@ -44,7 +44,9 @@ class TencentDriver(object):
 
     def _get_page_jobs(self, url, last_update):
         jobs = []
-        res = requests.get(url)
+        t = gevent.spawn(requests.get, url)
+        t.join()
+        res = t.value
         bs = BeautifulSoup(res.content)
         table = bs.findAll("table", attrs = {"class":"tablelist"})[0]
         trs = table.findAll("tr", attrs = {"class":"even"})
@@ -76,9 +78,11 @@ class TencentDriver(object):
 
     def _get_single_job(self, url):
         content = ""
-        res = requests.get(url)
-        bs = BeautifulSoup(res.content)
-        table = bs.findAll("table", attrs = {"class": "tablelist textl"})[0]
+        t = gevent.spawn(requests.get, url)
+        t.join()
+        bs = BeautifulSoup(t.value.content)
+        table = bs.findAll("table",
+                           attrs = {"class": "tablelist textl"})[0]
         # the last two are bookmark text, so ignore them
         tds = table.findAll("td")[:-2]
         for td in tds:
@@ -92,10 +96,11 @@ class TencentDriver(object):
         return content
 
 
-class DriverBuilder(object):
-    """Build driver according to the given name."""
-    @classmethod
-    def get_driver(self, name):
-        if name.lower() == "tencent":
-            return TencentDriver()
-        return FakeDriver()
+class UndefinedDriver(Exception): pass
+
+def get_driver(name):
+    cls = name.capitalize() + 'Driver'
+    try:
+        return eval(cls+'()')
+    except Exception, e:
+        raise UndefinedDriver(name)

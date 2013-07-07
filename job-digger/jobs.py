@@ -54,10 +54,9 @@ class JobDigger(object):
 
     def _init_driver(self, companies):
         if not companies:
-            self.drivers = [driver.FakeDriver()]
             return
         for company in companies:
-            dd = driver.DriverBuilder.get_driver(company)
+            dd = driver.get_driver(company)
             self.drivers.append(dd)
 
     def get_jobs(self, *args, **kwargs):
