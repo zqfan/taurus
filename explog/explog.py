@@ -1,5 +1,21 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright (C) 2013 ZhiQiang Fan <aji.zqfan@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import time
@@ -10,45 +26,44 @@ import readline
 import argparse
 
 
-class FileNotFound(Exception): pass
+class FileNotFound(Exception):
+    pass
+
+
 class DirNotFound(Exception):
     def __str__(self):
         return "".join(("Error: directory is not found. ",
-                super(Exception, self).__str__()))
+                        super(Exception, self).__str__()))
 
 
-class explog(object):
+DATA_DIR = u'/home/zqfan/appdata/explog'
+
+
+class Explog(object):
     """A expense recorder."""
     _elist = []
     _ecat = {}
     conf = ""
 
-    def __init__(self, conf_file=""):
-        if conf_file.strip() == "":
-            path = os.path.realpath(sys.path[0])
-            if os.path.isfile(path):
-                path = os.path.dirname(path)
-                path = os.path.abspath(path)
-            self.conf = path+os.path.sep+"explog.conf"
-        else:
-            self.conf = conf_file
-        if not os.path.isfile(self.conf):
-            raise FileNotFound(self.conf)
+    def __init__(self):
+        self.data_dir = DATA_DIR
+        if not os.path.isdir(self.data_dir):
+            os.mkdir(self.data_dir)
         self.date = time.strftime("%Y-%m-%d")
 
     def _get_file_by_date(self, date, auto_create=True):
         date = date or self.date
-        time_t = time.strptime(date,'%Y-%m-%d')
+        time_t = time.strptime(date, '%Y-%m-%d')
         year = str(time_t.tm_year)
         mon = '%02d' % time_t.tm_mon
         year_dir = self._concate_dir(self.data_dir, year, auto_create)
         mon_dir = self._concate_dir(year_dir, mon, auto_create)
-        return os.path.join(mon_dir,date+".txt")
+        return os.path.join(mon_dir, date+".txt")
 
     def add(self, item, price, category='other', date=''):
         category = category or 'other'
         new_data = {'item': item,
-                    'price' : price,
+                    'price': price,
                     'category': category,
                     'date': date}
         file_name = self._get_file_by_date(date)
@@ -63,7 +78,7 @@ class explog(object):
         self.list(date)
 
     def _concate_dir(self, path, sub='', auto_create=False):
-        new_dir = os.path.join(path,sub)
+        new_dir = os.path.join(path, sub)
         if not os.path.isdir(new_dir):
             if auto_create:
                 os.mkdir(new_dir)
@@ -110,13 +125,13 @@ class explog(object):
 
     def update(self, id, item=None, price=None, category=None):
         if len(self._elist) <= id or id < 0:
-            print "Error: Index error."
+            print u"Error: Index error."
             return
-        entry = self._elist[item_id]
+        entry = self._elist[id]
         entry['item'] = item or entry['item']
         entry['price'] = price or entry['price']
         entry['category'] = category or entry['category']
-        self._dump_by_date(date)
+        self._dump_by_date(entry['date'])
 
     def find(self, item=None, category=None):
         self._elist = []
@@ -126,8 +141,7 @@ class explog(object):
                 self._elist.extend(data)
         filtered_list = []
         for entry in self._elist:
-            if (entry['item'] == item or
-                entry['category'] == category):
+            if (entry['item'] == item or entry['category'] == category):
                 filtered_list.append(entry)
         self._elist = filtered_list
         self._print_list()
@@ -151,17 +165,6 @@ class explog(object):
         file_name = self._get_file_by_date(date)
         with open(file_name, 'w') as f:
             json.dump(new_data, f)
-
-    def load_conf(self):
-        with open(self.conf) as fp:
-            for line in fp:
-                if line.startswith('data_dir = '):
-                    self.data_dir = line[11:].strip()
-        if self.data_dir == '':
-            self.data_dir = os.path.expanduser('~')+'/appdata/explog'
-        if not os.path.isdir(self.data_dir):
-            # make directory
-            os.mkdir(self.data_dir)
 
     def _read_old_format_data(self, file_name):
         data = []
@@ -189,7 +192,7 @@ class explog(object):
                     count = 0
         return data
 
-    def _list_day(self,file_name,option=None):
+    def _list_day(self, file_name, option=None):
         with open(file_name) as f:
             try:
                 data = json.load(f)
@@ -206,8 +209,8 @@ class explog(object):
     def _get_summary(self):
         summary = {}
         for l in self._elist:
-            if not summary.has_key(l['category']):
-                summary[l['category']] = [1,float(l['price'])]
+            if not l['category'] in summary:
+                summary[l['category']] = [1, float(l['price'])]
             else:
                 summary[l['category']][0] += 1
                 summary[l['category']][1] += float(l['price'])
@@ -215,31 +218,31 @@ class explog(object):
 
     def _print_list(self):
         self._elist.sort(key=lambda x: x['date'])
-       	print '+------+-----------------+-----------------+------------+------------+'
+        print '+------+-----------------+-----------------+------------+------------+'
         print ('| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |' %
-               ('id','category','item','price','date'))
-	print '+------+-----------------+-----------------+------------+------------+'
+               ('id', 'category', 'item', 'price', 'date'))
+        print '+------+-----------------+-----------------+------------+------------+'
         for (i, v) in enumerate(self._elist):
             print ('| %-4.4s | %-15.15s | %-15.15s | %-10.10s | %-10.10s |' %
                    (i, self._elist[i]['category'],
                     self._elist[i]['item'],
                     self._elist[i]['price'],
                     self._elist[i]['date']))
-	print '+------+-----------------+-----------------+------------+------------+'
+        print '+------+-----------------+-----------------+------------+------------+'
 
     def _print_summary(self, prompt=None, summary={}):
         total = cost = income = 0
         print prompt or 'category summary'
         print '+------------+--------+------------+'
         print ('| %-10.10s | %-6.6s | %-10.10s |' %
-               ('category','count','total'))
+               ('category', 'count', 'total'))
         print '+------------+--------+------------+'
         for k in summary:
             print ('| %-10.10s | %-6d | %-10.1f |' %
-                   (k,summary[k][0],summary[k][1]))
-            if k=='bank':
+                   (k, summary[k][0], summary[k][1]))
+            if k == 'bank':
                 continue
-            if summary[k][1] > 0 :
+            if summary[k][1] > 0:
                 income += summary[k][1]
             else:
                 cost += summary[k][1]
@@ -285,7 +288,7 @@ class explog(object):
 
         parser_update = sub_parser.add_parser('update')
         parser_update.set_defaults(func=self.update)
-        parser_update.add_argument('-id')
+        parser_update.add_argument('-id', type=int)
         parser_update.add_argument('-i', '--item', default='')
         parser_update.add_argument('-p', '--price', default='')
         parser_update.add_argument('-c', '--category', default='')
@@ -306,7 +309,10 @@ class explog(object):
         return parser.parse_args(args)
 
 
-if __name__ == "__main__":
-    elog = explog()
-    elog.load_conf()
+def main():
+    elog = Explog()
     elog.run()
+
+
+if __name__ == "__main__":
+    main()
