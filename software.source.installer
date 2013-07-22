@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+# you-get
+git clone https://github.com/soimort/you-get.git ~/

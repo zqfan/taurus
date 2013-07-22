@@ -1,0 +1,16 @@
+#! /usr/bin bash
+
+if [ "`whoami`" != 'root' ]; then
+    echo 'Error: need execute with root privilege'
+    exit 1
+fi
+
+# python3, python3.2
+apt-get install python3 python3.2
+
+# git
+apt-get install git
+git config --global user.name "ZhiQiang Fan"
+git config --global user.email aji.zqfan@gmail.com
+git config --global core.editor vim
+git config --global color.ui true
