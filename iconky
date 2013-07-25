@@ -1,16 +1,17 @@
 #! /usr/bin/env bash
 curdir=${0%/*}
 
-base=$curdir/conky/base
-if [ ! -f $base ]; then exit 1;
-else conky -d -c $base; fi
-sleep 1
+function conky_daemon() {
+    conf="$curdir/conky/$1"
+    if [ ! -f $conf ]; then exit 1;
+    else conky -d -c $conf
+    fi
+    sleep 1
+}
 
-maxim=$curdir/conky/maxim
-if [ ! -f $maxim ]; then exit 1;
-else conky -d -c $maxim; fi
-sleep 1
+conky_daemon footprint
+exit 0 # ignore other configs
 
-weather=$curdir/conky/weather
-if [ ! -f $weather ]; then exit 1;
-else conky -d -c $weather; fi
+conky_daemon status
+conky_daemon maxim
+conky_daemon weather
