@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+if [ -d ~/you-get ]; then
+    ~/you-get/you-get "$@"
+elif [ -d ~/software/you-get ]; then
+    ~/software/you-get/you-get "$@"
+fi
