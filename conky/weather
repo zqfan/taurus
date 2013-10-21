@@ -55,5 +55,5 @@ TEXT
 # lunar
 ${font WenQuanYi Micro Hei:size=8}农历${execi 3600 ~/software/conky-theme/get_lunar.sh}
 # weather
-${execi 300 weather -o ~/.weather}${execi 60 head -5 ~/.weather}
+${execi 300 weather -c 101280601 -o ~/.weather.shenzhen}${execi 60 head -5 ~/.weather.shenzhen}
 ${execi 300 weather -c 101250301 -o ~/.weather.zhuzhou}${execi 300 head -2 ~/.weather.zhuzhou}

@@ -46,7 +46,8 @@ default_color       aaa
 TEXT
 
 ${font size=10}MILESTONE 2014.1
-* Top Contributor of Neutron, Keystone
-* 300K/Y
-* Top Contributor of Horizon
+* Top Contributor of Neutron - For SDN
+* Top Contributor of Keystone - For Security
+* 300K/Y - For House
+* Top Contributor of Horizon - For Web Develope
 * Lisp, C/C++

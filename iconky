@@ -9,8 +9,8 @@ function conky_daemon() {
     sleep 1
 }
 
-conky_daemon footprint
-exit 0 # ignore other configs
+#conky_daemon footprint
+#exit 0 # ignore other configs
 
 conky_daemon status
 conky_daemon maxim

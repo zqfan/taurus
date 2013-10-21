@@ -77,9 +77,13 @@ def get_city_code(city_name):
            "callback=jsonp1342857491709&_=1342857620727"
            "&language=zh&keyword=%s" % city_name)
     resp = requests.get(url)
-    content = resp.content.split("(")[1].split(")")[0]
-    city_code = json.loads(content)["i"][0]["i"]
-    return city_code
+    try:
+        content = resp.content.split("(")[1].split(")")[0]
+        city_code = json.loads(content)["i"][0]["i"]
+    except:
+        raise SystemExit("get city code failed")
+    else:
+        return city_code
 
 
 def main():
