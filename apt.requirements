@@ -14,3 +14,10 @@ git config --global user.name "ZhiQiang Fan"
 git config --global user.email aji.zqfan@gmail.com
 git config --global core.editor vim
 git config --global color.ui true
+
+# openstack developer env setup
+apt-get install pip
+pip install nose
+# neutron
+pip install subunit
+pip install tox

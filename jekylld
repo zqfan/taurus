@@ -2,8 +2,15 @@
 
 if [[ -s $HOME/.rvm/scripts/rvm ]]; then
     source $HOME/.rvm/scripts/rvm
-    cur_dir=`pwd`
-    cd $HOME/public/zqfan.github.com/
-    jekyll --server 1>/tmp/jekylld.log 2>&1 &
-    cd "$cur_dir"
 fi
+
+pid=`ps aux > /tmp/ps && cat /tmp/ps | awk '/jekyll / {print $2}'`
+if [[ -n $pid ]]; then
+    kill $pid
+fi
+
+cur_dir=`pwd`
+cd $HOME/public/zqfan.github.com/
+jekyll serve 1>/tmp/jekylld.log 2>&1 &
+cd "$cur_dir"
+
