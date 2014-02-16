@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+# http://johnmacfarlane.net/pandoc/
+sudo apt-get update
+sudo apt-get dist-upgrade -y
+sudo apt-get install -y haskell-platform
+sudo apt-get install -y texlive
+cabal update
+cabal install pandoc pandoc-citeproc
+echo $PATH | grep -q ~/.cabal/bin
+if [ $? -eq 1 ]; then
+    echo 'PATH=$PATH:~/.cabal/bin' >> ~/.bashrc
+    . ~/.bashrc
+fi
+pandoc --version
